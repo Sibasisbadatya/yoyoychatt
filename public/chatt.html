@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Socket.IO chat</title>
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide|Sofia|Trirong">
+	<style>
+		.heading {
+			font-family: "Audiowide", sans-serif;
+		}
+	</style>
+</head>
+
+<body>
+	<div align="center" class="heading">
+		<b>Yo Yo CHATT</b>
+	</div>
+	<div id="nameinfo">
+		<form action="" class="pre">
+			<input type="text" id="nameinput" placeholder="ENTER YOUR NAME[within 10 letters]" required>
+			<button id="start">START CHATTING</button>
+		</form>
+	</div>
+
+
+	<!-- starting of main interface -->
+
+	<div id="interface">
+		<div id="left" style="display:none">
+			<div id="lheading">YO YO CHATT</div>
+			<div id="lusers" align="center">ONLINE USERS
+				<hr color="orange">
+			</div>
+			<ul id="userslist"></ul>
+
+		</div>
+		<div id="main" style="display:none">
+			<ul id="messages"></ul>
+			<div id="forms">
+				<form id="form" action="">
+					<input id="input" autocomplete="off" /><button>SEND</button>
+				</form>
+			</div>
+
+		</div>
+	</div>
+
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		var socket = io();
+		var mainname = document.getElementById("lheading");
+		var start = document.getElementById("start");
+		start.addEventListener("click", (e) => {
+			e.preventDefault();
+			var nameinput = document.getElementById("nameinput");
+			if (nameinput.value != '') {
+				socket.emit("userjoined", nameinput.value);
+				document.getElementById("nameinfo").style.display = "none";
+				document.getElementById("main").style.display = "block";
+				document.getElementById("left").style.display = "block";
+				document.querySelector(".heading").style.display = "none";
+				mainname.innerHTML = `Hii, ${nameinput.value}`;
+			}
+			else {
+				alert("Please fill your name!");
+			}
+
+		});
+
+		var input = document.getElementById("input");
+		var form = document.getElementById("form");
+		var messages = document.getElementById("messages");
+		var userdata = document.getElementById("userslist");
+
+		//date and time methods
+
+
+
+		form.addEventListener("submit", (e) => {
+			e.preventDefault();
+			if (input.value) {
+				const date = new Date().getDate();
+				let hour = new Date().getHours();
+				if (hour > 12) {
+					var time = hour - 12;
+					var tm = `pm`;
+				}
+				else {
+					tm = `am`;
+				}
+				const minute = new Date().getMinutes();
+				var self = document.createElement('div');
+				self.style = "margin-left:auto";
+				//messages.style = "display:flex;flex-direction:row-reverse;";
+				self.innerHTML = `<div><p>you at ${time}:${minute} ${tm} -></p></div> <div> ${input.value}</div>`;
+				messages.appendChild(self);
+				socket.emit('message', input.value, nameinput.value);
+				input.value = '';
+			}
+		});
+		socket.on("nameappend", (name) => {
+			var item = document.createElement('li');
+			var user = document.createElement('li');
+			const date = new Date().getDate();
+			let hour = new Date().getHours();
+			if (hour > 12) {
+				var time = hour - 12;
+				var tm = `pm`;
+			}
+			else {
+				tm = `am`;
+			}
+			const minute = new Date().getMinutes();
+			user.innerText = `${name}`;
+			item.innerHTML = `<b> ->${name}<- has joined the chat<b> at ${time}:${minute} ${tm}`;
+			messages.appendChild(item);
+			userdata.appendChild(user);
+		})
+		socket.on("message", (value, username) => {
+			const date = new Date().getDate();
+			let hour = new Date().getHours();
+			if (hour > 12) {
+				var time = hour - 12;
+				var tm = `pm`;
+			}
+			else {
+				tm = `am`;
+			}
+			const minute = new Date().getMinutes();
+			var item = document.createElement('div');
+			item.innerHTML = `<div><p>${username} at ${time}:${minute} ${tm} -></p></div> <div> ${value}</div>`;
+			messages.appendChild(item);
+		});
+
+	</script>
+</body>
+
+</html>
